@@ -1,5 +1,17 @@
-import { useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Modal from "react-modal";
+import { addHours, differenceInSeconds } from "date-fns";
+
+import Swal from "sweetalert2";
+import 'sweetalert2/dist/sweetalert2.min.css';
+
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { es } from "date-fns/locale";
+import { useCalendarStore, useUiStore } from "../../hooks";
+import { IEvent } from "..";
+
+registerLocale('es', es);
 
 const customStyles = {
   content: {
@@ -14,17 +26,84 @@ const customStyles = {
 
 Modal.setAppElement("#root");
 
-export const CustomCalendarModal = () => {
-  const [isOpen, setIsOpen] = useState(true);
 
-  const onCloseModal = () => {
-    setIsOpen(false);
-  };
+const initialFormState: IEvent = {
+  _id: new Date().getTime(),
+  title: "",
+  notes: "",
+  start: new Date(),
+  end: addHours(new Date(), 2),
+  bgColor: "fafafa",
+  user: {
+    _id: '',
+    name: ''
+  }
+};
+
+export const CustomCalendarModal = () => {
+
+  const { activeEvent, startSavingEvent } = useCalendarStore();
+  const { closeDateModal } = useUiStore();
+ 
+  const { isDateModalOpen } = useUiStore();
+
+  const [formValues, setFormValues] = useState<IEvent>(initialFormState);
+
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  const titleClass = useMemo(() => {
+    if  ( !formSubmitted ) return '';
+
+    return  ( formValues.title.length > 0 )  
+      ? '' 
+      : 'is-invalid';
+  }, [ formValues.title, formSubmitted ]);
+
+  useEffect(() => {
+    if( activeEvent !== null ) {
+      setFormValues({ ...activeEvent });
+    }
+  }, [ activeEvent ]);
+
+  const onInputChange = ({ target }: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormValues({
+      ...formValues,
+      [target.name]: target.value,
+    });
+  }
+
+  const onDateChange = ( date: Date | null, changin: "start" | "end" ) => {
+    setFormValues({
+      ...formValues,
+      [changin]: date
+    });
+  }
+
+  const onSubmit = async( e: ChangeEvent<HTMLFormElement> ) => {
+    e.preventDefault();
+    setFormSubmitted( true );
+    
+    const difference = differenceInSeconds( formValues.end, formValues.start );
+    
+    if ( isNaN( difference ) || difference < 0 ) {
+      Swal.fire('Fechas incorrectas', 'Fecha fin debe ser mayor a la fecha de inicio', 'error');
+      return;
+    }
+    
+    if ( formValues.title.length <= 0 ) return;
+    
+    console.log( formValues );
+    
+    // TODO: Cerrar modal
+    await startSavingEvent( formValues );
+    closeDateModal();
+    setFormSubmitted( false );
+  }
 
   return (
     <Modal
-      isOpen={isOpen}
-      onRequestClose={onCloseModal}
+      isOpen={ isDateModalOpen }
+      onRequestClose={ closeDateModal }
       style={customStyles}
       className="modal"
       overlayClassName="modal-fondo"
@@ -33,15 +112,32 @@ export const CustomCalendarModal = () => {
     >
       <h1> Nuevo evento </h1>
       <hr />
-      <form className="container">
+      <form className="container" onSubmit={ onSubmit }>
         <div className="form-group mb-2">
-          <label>Fecha y hora inicio</label>
-          <input className="form-control" placeholder="Fecha inicio" />
+          <label className="" >Fecha y hora inicio</label>
+          <DatePicker  
+            className="form-control"
+            selected={ formValues.start }
+            onChange={ (date) => onDateChange( date, 'start' ) }
+            dateFormat="Pp"
+            showTimeSelect
+            locale="es"
+            timeCaption="Hora"
+            />
         </div>
 
         <div className="form-group mb-2">
           <label>Fecha y hora fin</label>
-          <input className="form-control" placeholder="Fecha inicio" />
+          <DatePicker
+            minDate={ formValues.start }  
+            className="form-control"
+            selected={ formValues.end }
+            onChange={ (date) => onDateChange( date, 'end' ) }
+            dateFormat="Pp"
+            showTimeSelect
+            locale="es"
+            timeCaption="Hora"
+          />
         </div>
 
         <hr />
@@ -49,11 +145,14 @@ export const CustomCalendarModal = () => {
           <label>Titulo y notas</label>
           <input
             type="text"
-            className="form-control"
+            className={ `form-control ${ titleClass }` }
             placeholder="Título del evento"
             name="title"
             autoComplete="off"
-          />
+
+            value={ formValues.title }
+            onChange={ onInputChange }
+            />
           <small id="emailHelp" className="form-text text-muted">
             Una descripción corta
           </small>
@@ -61,11 +160,13 @@ export const CustomCalendarModal = () => {
 
         <div className="form-group mb-2">
           <textarea
-            type="text"
             className="form-control"
             placeholder="Notas"
-            rows="5"
+            rows={5}
             name="notes"
+
+            value={ formValues.notes }
+            onChange={ onInputChange }
           ></textarea>
           <small id="emailHelp" className="form-text text-muted">
             Información adicional

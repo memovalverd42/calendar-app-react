@@ -1,43 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SyntheticEvent, useState } from 'react';
 import { Calendar, View } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { CalendarEvent, CustomCalendarModal, Navbar } from '../';
+import { CalendarEvent, CustomCalendarModal, FabAddNew, FabDelete, IEvent, Navbar } from '../';
 import { localizer, getMessagesES } from '../../helpers';
-
-export interface User {
-  _id: string;
-  name: string;
-}
-
-export interface IEvent {
-  title: string;
-  notes: string;
-  start: Date;
-  end: Date;
-  bgColor: string;
-  user: User;
-}
-
-const events: IEvent[] = [
-  {
-    title: 'Mi cumpleaños',
-    notes: 'Comprarme algo',
-    start: new Date('2022-09-20T10:00:00'),
-    end: new Date('2022-09-20T12:00:00'),
-    bgColor: '#fafafa',
-    user: {
-      _id: '123',
-      name: 'Guillermo'
-    }
-  },
-]
-
+import { useCalendarStore, useUiStore } from '../../hooks';
 
 export const CalendarPage = () => {
 
-  const [lastView, setLastView] = useState(localStorage.getItem('lastView') || 'month');
+  const { events, setActiveEvent } = useCalendarStore();
 
-  const eventStyleGetter = ( event: IEvent, start: Date, end: Date, isSelected: boolean ) => {
+  const { openDateModal } = useUiStore();
+
+  const [_lastView, setLastView] = useState(localStorage.getItem('lastView') || 'month');
+
+  const eventStyleGetter = ( _event: IEvent, _start: Date, _end: Date, _isSelected: boolean ) => {
     // console.log( {event, start, end, isSelected} );
 
     const style = {
@@ -54,12 +31,13 @@ export const CalendarPage = () => {
 
   }
 
-  const onDoubleClick = ( event: IEvent, e: SyntheticEvent ) => {
+  const onDoubleClick = ( event: IEvent, _e: SyntheticEvent ) => {
     console.log( event );
+    openDateModal();
   }
 
-  const onSelect = ( event: IEvent, e: SyntheticEvent ) => {
-    console.log( event );
+  const onSelect = ( event: IEvent, _e: SyntheticEvent ) => {
+    setActiveEvent( event )
   }
 
   const onViewChange = ( view: View ) => {
@@ -90,6 +68,11 @@ export const CalendarPage = () => {
       />
 
       <CustomCalendarModal />
+
+      <FabAddNew/>
+    
+      <FabDelete/>
+      
 
     </>
   )
