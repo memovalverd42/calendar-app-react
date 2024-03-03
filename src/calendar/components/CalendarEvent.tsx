@@ -1,5 +1,5 @@
 import { EventProps } from 'react-big-calendar';
-import { IEvent } from '../pages/CalendarPage';
+import { IEvent } from '..';
 
 export const CalendarEvent = (props: EventProps<IEvent>) => {
 
