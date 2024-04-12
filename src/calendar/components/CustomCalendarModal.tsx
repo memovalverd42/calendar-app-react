@@ -26,16 +26,15 @@ const customStyles = {
 
 Modal.setAppElement("#root");
 
-
 const initialFormState: IEvent = {
-  _id: new Date().getTime(),
+  id: "",
   title: "",
   notes: "",
   start: new Date(),
   end: addHours(new Date(), 2),
   bgColor: "fafafa",
   user: {
-    _id: '',
+    id: '',
     name: ''
   }
 };
@@ -43,18 +42,14 @@ const initialFormState: IEvent = {
 export const CustomCalendarModal = () => {
 
   const { activeEvent, startSavingEvent } = useCalendarStore();
-  const { closeDateModal } = useUiStore();
- 
-  const { isDateModalOpen } = useUiStore();
-
+  const { closeDateModal, isDateModalOpen } = useUiStore();
   const [formValues, setFormValues] = useState<IEvent>(initialFormState);
 
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const titleClass = useMemo(() => {
-    if  ( !formSubmitted ) return '';
-
-    return  ( formValues.title.length > 0 )  
+    if( !formSubmitted ) return '';
+    return ( formValues.title.length > 0 )  
       ? '' 
       : 'is-invalid';
   }, [ formValues.title, formSubmitted ]);
@@ -84,17 +79,12 @@ export const CustomCalendarModal = () => {
     setFormSubmitted( true );
     
     const difference = differenceInSeconds( formValues.end, formValues.start );
-    
     if ( isNaN( difference ) || difference < 0 ) {
       Swal.fire('Fechas incorrectas', 'Fecha fin debe ser mayor a la fecha de inicio', 'error');
       return;
     }
-    
     if ( formValues.title.length <= 0 ) return;
     
-    console.log( formValues );
-    
-    // TODO: Cerrar modal
     await startSavingEvent( formValues );
     closeDateModal();
     setFormSubmitted( false );

@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '.';
 import { calendarApi } from '../api';
-import { User, clearErrorMessage, onCheking, onLogin, onLogout } from '../store';
+import { User, clearErrorMessage, onCheking, onLogin, onLogout, onLogoutCalendar } from '../store';
 
 interface LoginCredentials {
   email: string;
@@ -86,6 +86,7 @@ export const useAuthStore = () => {
   const startLogout = () => {
     localStorage.clear();
     dispatch( onLogout(null) );
+    dispatch( onLogoutCalendar() );
   }
   
   return {
