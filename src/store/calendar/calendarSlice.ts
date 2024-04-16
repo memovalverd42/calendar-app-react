@@ -1,17 +1,17 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { IEvent } from '../../calendar';
 
-const event: IEvent =   {
-  title: 'Mi cumpleaños',
-  notes: 'Comprarme algo',
-  start: new Date('2024-02-26T10:00:00'),
-  end: new Date('2024-02-26T12:00:00'),
-  bgColor: '#fafafa',
-  user: {
-    id: '123',
-    name: 'Guillermo'
-  }
-}
+// const event: IEvent =   {
+//   title: 'Mi cumpleaños',
+//   notes: 'Comprarme algo',
+//   start: new Date('2024-02-26T10:00:00'),
+//   end: new Date('2024-02-26T12:00:00'),
+//   bgColor: '#fafafa',
+//   user: {
+//     id: '123',
+//     name: 'Guillermo'
+//   }
+// }
 
 export interface CalendarState {
   isLoadingEvents: boolean;
@@ -21,7 +21,7 @@ export interface CalendarState {
 
 const initialState: CalendarState = {
   isLoadingEvents: true,
-  events: [event,],
+  events: [],
   activeEvent: null,
 }
 
